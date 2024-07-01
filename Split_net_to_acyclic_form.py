@@ -9,12 +9,14 @@ class Acyclic_form:
         self.FVS_nodes = None
 
         self.input_nodes = []
+        #처음부터 mutated network를 넣을 경우, 이 input nodes는 original network의 input nodes와 다를 수 있음.
         self.output_nodes = []
         self._find_input_nodes_and_output_nodes()
 
 
         self.__FVS_connecting_paths = {}
-        #FVS pair에 대해, 그 사이를 잇는 path를 list of tuple forms으로 저장한다.
+        #FVS pair에 대해, 그 사이를 잇는 path는 list of tuple forms으로 저장한다.
+        #하나의 FVS pair에 대해 두 개 이상의 path가 존재할 수 있기 때문에 list of path를 담는다.
 
     def _find_input_nodes_and_output_nodes(self):
         """주어진 tuple form edges에서, 
@@ -82,6 +84,8 @@ class Acyclic_form:
             source_node_to_edges_map = self._get_source_node_to_edges_map(self.edges)
 
             def _make_path_recursively(path, source_node_to_edges_map):
+                """하나의 node에 대해, 그 node의 downstream으로 이어지는 path를
+                recursive하게 다 찾는 함수"""
                 all_paths = []
 
                 if path[-1][-1] in self.output_nodes:
@@ -147,3 +151,15 @@ class Acyclic_form:
             source_node_to_edges_map.setdefault(source_node, []).append(edge_tuple_form)
         
         return source_node_to_edges_map
+
+
+if __name__ == "__main__":
+    from Model_read_using_pyboolnet import read_pyboolnet_file
+    import os
+    library_folder = os.path.abspath(os.path.dirname(__file__))
+    toy_model_dynamics_pyboolnet = read_pyboolnet_file(os.path.join(library_folder,"toy_data","toy_model1.bnet"))
+    edges_tuple_form = toy_model_dynamics_pyboolnet.get_edges_with_modalities(node_cut=[], ignore_self_loop_on_source_nodes=True)
+
+    acylic_form_obj = Acyclic_form(edges_tuple_form)
+    acylic_form_obj.set_FVS_nodes(('n4', 'n5', 'n9'))
+    
